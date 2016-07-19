@@ -3,6 +3,7 @@ from chainer import Chain
 import chainer.functions as F
 import chainer.links     as L
 import numpy             as np
+import tlogger           as tl
 
 
 class PolicyNetwork(Chain):
@@ -13,8 +14,9 @@ class PolicyNetwork(Chain):
             l3=F.Linear(1000, 2))
 
     def __call__(self, state):
-        h1 = F.relu(self.l1(state))
-        h2 = F.relu(self.l2(h1))
-        h3 = F.relu(self.l3(h2))
+        h1 = F.leaky_relu(self.l1(state))
+        h2 = F.leaky_relu(self.l2(h1))
+        h3 = F.leaky_relu(self.l3(h2))
+        tl.log("player", h3.data)
         return F.softmax(h3)
 

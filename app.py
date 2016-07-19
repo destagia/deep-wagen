@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 import socket
 import random
+import tlogger as tl
 
 from dwagen import Player
 
@@ -21,7 +22,7 @@ while True:
     rcvmsg = clientsock.recv(10000000)
     if rcvmsg != '':
         try:
-            print("Receive -> " + rcvmsg)
+            tl.log("socket", "Receive -> " + rcvmsg)
             command, value = rcvmsg.split(":")
             if command == 'get_action':
                 floats = map(lambda x: float(x), value.split(","))
@@ -35,6 +36,5 @@ while True:
         except Exception as e:
             print(e)
             clientsock.sendall('f')
-
 
 clientsock.close()
