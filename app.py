@@ -2,6 +2,8 @@
 import socket
 import random
 
+from dwagen import Player
+
 host = "localhost"
 port = 43376
 
@@ -13,10 +15,26 @@ serversock.listen(10) # 接続の待ち受けをします（キューの最大�
 print 'Waiting for connections...'
 clientsock, client_address = serversock.accept() # 接続されればデータを格納
 
+player = Player()
+
 while True:
-    rcvmsg = clientsock.recv(1024)
+    rcvmsg = clientsock.recv(10000000)
     if rcvmsg != '':
-        print('Received -> %s' % (rcvmsg))
-        random_value = random.randint(1,10)
-        clientsock.sendall('t' if random_value == 1 else 'f')
+        try:
+            print("Receive -> " + rcvmsg)
+            command, value = rcvmsg.split(":")
+            if command == 'get_action':
+                floats = map(lambda x: float(x), value.split(","))
+                clientsock.sendall('t' if player.jump(floats) else 'f')
+            elif command == 'learn_win':
+                player.learn_win()
+                clientsock.sendall('ok')
+            elif command == 'learn_lose':
+                player.learn_lose()
+                clientsock.sendall('ok')
+        except Exception as e:
+            print(e)
+            clientsock.sendall('f')
+
+
 clientsock.close()
