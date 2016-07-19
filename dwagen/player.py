@@ -50,7 +50,7 @@ class Player:
         action_sum = sum(action_v.data[0])
         target = random.uniform(0, action_sum)
 
-        if target < action.data[0][0]:
+        if target < action_v.data[0][0]:
             selected_action = 0
         else:
             selected_action = 1
