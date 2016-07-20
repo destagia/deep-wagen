@@ -25,7 +25,7 @@ class Player:
             else:
                 true_action = 1
             tl.log("learn", "True Action Index : " + str(true_action))
-            true_action_v = np.asarray([true_action]).astype(np.int32)
+            true_action_v = Variable(np.asarray([true_action]).astype(np.int32))
             self.__optimizer.update(F.softmax_cross_entropy, episode.action_v, true_action_v)
         self.reset()
 
@@ -37,7 +37,7 @@ class Player:
             else:
                 true_action = 0
             tl.log("learn", "True Action Index : " + str(true_action))
-            true_action_v = np.asarray([true_action]).astype(np.int32)
+            true_action_v = Variable(np.asarray([true_action]).astype(np.int32))
             self.__optimizer.update(F.softmax_cross_entropy, episode.action_v, true_action_v)
         self.reset()
 
