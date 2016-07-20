@@ -6,7 +6,7 @@ player = Player()
 command, value = data.split(":")
 floats = map(lambda x: float(x), value.split(","))
 
-for _ in range(0, 100):
-    player.jump(floats)
+for no in range(0, 100):
+    print(str(no) + " : " + str(player.jump(floats)))
 
 player.learn_lose()

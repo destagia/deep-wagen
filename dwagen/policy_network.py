@@ -7,16 +7,19 @@ import tlogger           as tl
 
 
 class PolicyNetwork(Chain):
-    def __init__(self, n_input):
+    def __init__(self):
         super(PolicyNetwork, self).__init__(
-            l1=F.Linear(n_input, 1000),
-            l2=F.Linear(1000, 1000),
-            l3=F.Linear(1000, 2))
+            conv1 = F.Convolution2D(4,  32, ksize=8),
+            conv2 = F.Convolution2D(32, 64, ksize=4),
+            conv3 = F.Convolution2D(64, 64, ksize=3),
+            l1=F.Linear(79872, 512),
+            l2=F.Linear(512, 2))
 
     def __call__(self, state):
-        h1 = F.leaky_relu(self.l1(state))
-        h2 = F.leaky_relu(self.l2(h1))
-        h3 = F.leaky_relu(self.l3(h2))
-        tl.log("player", h3.data)
-        return F.softmax(h3)
-
+        h1 = F.relu(self.conv1(state))
+        h2 = F.relu(self.conv2(h1))
+        h3 = F.relu(self.conv3(h2))
+        h4 = F.relu(self.l1(h3))
+        h5 = F.relu(self.l2(h4))
+        tl.log("player", h5.data)
+        return F.softmax(h5)
