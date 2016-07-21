@@ -9,9 +9,9 @@ import tlogger           as tl
 class PolicyNetwork(Chain):
     def __init__(self):
         super(PolicyNetwork, self).__init__(
-            conv1 = F.Convolution2D(4,  32, ksize=8),
-            conv2 = F.Convolution2D(32, 64, ksize=4),
-            conv3 = F.Convolution2D(64, 64, ksize=3),
+            conv1=F.Convolution2D(4,  32, ksize=8),
+            conv2=F.Convolution2D(32, 64, ksize=4),
+            conv3=F.Convolution2D(64, 64, ksize=3),
             l1=F.Linear(79872, 512),
             l2=F.Linear(512, 2))
 
