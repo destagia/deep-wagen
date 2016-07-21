@@ -13,6 +13,9 @@ class Player:
     IMAGE_HEIGHT = 36
     FRAME_COUNT = 4
 
+    BATCH = 32
+    GAMMA = 0.99
+
     def __init__(self):
         self.__episodes = []
         self.__network = PolicyNetwork()
@@ -20,41 +23,59 @@ class Player:
         self.__optimizer.setup(self.__network)
         self.__images = []
 
-    def learn_win(self):
-        for episode in self.__episodes:
-            tl.log("learn", episode.action_v.data[0])
-            if episode.selected_action == 0:
-                true_action = 0
-            else:
-                true_action = 1
-            tl.log("learn", "True Action Index : " + str(true_action))
-            true_action_v = Variable(np.asarray([true_action]).astype(np.int32))
-            self.__optimizer.update(F.softmax_cross_entropy, episode.action_v, true_action_v)
-        self.reset()
+    def learn(self):
+        minibatch = random.sample(self.__episodes)
 
-    def learn_lose(self):
-        for episode in self.__episodes:
-            tl.log("learn", episode.action_v.data[0])
-            if episode.selected_action == 0:
-                true_action = 1
+        inputs = np.zeros((BATCH, Player.FRAME_COUNT, Player.IMAGE_HEIGHT, Player.IMAGE_WIDTH))
+        targets = np.zeros((inputs.shape[0], 2))
+
+        for i in range(0, len(minibatch)):
+            data = minibatch[i]
+            state_v = data.state_v
+            action = data.action
+            action_v = data.action_v
+            reward = data.reward
+            state_v_prime = data.state_v_prime
+            is_game_end = data.is_game_end
+
+            inputs[i:i+1] = state_v.data
+            targets[i] = self.__network(state_v)
+            Q_sa = self.__network(state_v_prime)
+
+            if is_game_end:
+                targets[i, action] = reward
             else:
-                true_action = 0
-            tl.log("learn", "True Action Index : " + str(true_action))
-            true_action_v = Variable(np.asarray([true_action]).astype(np.int32))
-            self.__optimizer.update(F.softmax_cross_entropy, episode.action_v, true_action_v)
-        self.reset()
+                targets[i, action] = reward + GAMMA * np.max(Q_sa.data)
+
+        # ??????
+        self.__optimizer.update(F.softmax_cross_entropy, inputs, targets)
 
     def reset(self):
         self.__episodes = []
         self.__images = []
+        self.__prev_state_v = None
+        self.__prev_action_v = None
+        self.__prev_is_game_end = None
 
-    def jump(self, image):
+    def jump(self, image, reward, is_game_end):
+        """
+        Reward setting:
+            -1  : when car crashed
+            0.1 : when car jumped over a hole!
+            1   : when car reached goal (300 meters point from start)
+
+        :param image:       Compressed game screen shot (64 * 36)
+        :param reward:      Reward PREVIOUS action caused
+        :param is_game_end: Flag for checking whether or not game reached end
+        :return:            Action against given frame
+        """
 
         self.__images.append(image)
 
         if len(self.__images) < Player.FRAME_COUNT:
             return False
 
+        # Take last 4 frame
         last_4_frames = self.__images[-Player.FRAME_COUNT:]
 
         state_as_array = np.asarray(last_4_frames).astype(np.float32)
@@ -62,18 +83,22 @@ class Player:
         state_v = Variable(state_reshaped)
 
         action_v = self.__network(state_v)
-        action_sum = sum(action_v.data[0])
-        target = random.uniform(0, action_sum)
+        selected_action = np.argmax(action_v.data)
 
-        if target < action_v.data[0][0]:
-            selected_action = 0
-        else:
-            selected_action = 1
+        self.__episodes.append(Episode(self.__prev_state_v,
+                                       self.__prev_action_v,
+                                       selected_action,
+                                       reward,
+                                       state_v,
+                                       self.__prev_is_game_end))
 
-        self.__episodes.append(Episode(state_v, action_v, selected_action))
         tl.log("player", "========== JUMP ==========")
-        tl.log("player", target)
-        tl.log("player", selected_action)
         tl.log("player", action_v.data[0])
+        tl.log("player", "selected action : " + str(selected_action))
+
+        self.__prev_state_v = state_v
+        self.__prev_action_v = action_v
+        self.__prev_is_game_end = is_game_end
+
         return selected_action == 0
 
