@@ -17,16 +17,15 @@ class Player:
     GAMMA = 0.99
 
     def __init__(self):
-        self.__episodes = []
         self.__network = PolicyNetwork()
         self.__optimizer = optimizers.Adam()
         self.__optimizer.setup(self.__network)
-        self.__images = []
+        self.reset()
 
     def learn(self):
-        minibatch = random.sample(self.__episodes)
+        minibatch = random.sample(self.__episodes, Player.BATCH)
 
-        inputs = np.zeros((BATCH, Player.FRAME_COUNT, Player.IMAGE_HEIGHT, Player.IMAGE_WIDTH))
+        inputs = np.zeros((Player.BATCH, Player.FRAME_COUNT, Player.IMAGE_HEIGHT, Player.IMAGE_WIDTH)).astype(np.float32)
         targets = np.zeros((inputs.shape[0], 2))
 
         for i in range(0, len(minibatch)):
@@ -39,16 +38,16 @@ class Player:
             is_game_end = data.is_game_end
 
             inputs[i:i+1] = state_v.data
-            targets[i] = self.__network(state_v)
+            targets[i] = self.__network(state_v).data
             Q_sa = self.__network(state_v_prime)
 
             if is_game_end:
                 targets[i, action] = reward
             else:
-                targets[i, action] = reward + GAMMA * np.max(Q_sa.data)
+                targets[i, action] = reward + Player.GAMMA * np.max(Q_sa.data)
 
-        # ??????
-        self.__optimizer.update(F.softmax_cross_entropy, inputs, targets)
+        x = self.__network(inputs)
+        self.__optimizer.update(LossFunction(), x, targets)
 
     def reset(self):
         self.__episodes = []
@@ -56,6 +55,7 @@ class Player:
         self.__prev_state_v = None
         self.__prev_action_v = None
         self.__prev_is_game_end = None
+        self.__ready_to_store_episode = False
 
     def jump(self, image, reward, is_game_end):
         """
@@ -85,12 +85,13 @@ class Player:
         action_v = self.__network(state_v)
         selected_action = np.argmax(action_v.data)
 
-        self.__episodes.append(Episode(self.__prev_state_v,
-                                       self.__prev_action_v,
-                                       selected_action,
-                                       reward,
-                                       state_v,
-                                       self.__prev_is_game_end))
+        if self.__ready_to_store_episode:
+            self.__episodes.append(Episode(self.__prev_state_v,
+                                           self.__prev_action_v,
+                                           selected_action,
+                                           reward,
+                                           state_v,
+                                           self.__prev_is_game_end))
 
         tl.log("player", "========== JUMP ==========")
         tl.log("player", action_v.data[0])
@@ -99,6 +100,13 @@ class Player:
         self.__prev_state_v = state_v
         self.__prev_action_v = action_v
         self.__prev_is_game_end = is_game_end
+        self.__ready_to_store_episode = True
 
         return selected_action == 0
 
+class LossFunction:
+
+    def __call__(self, x, t):
+        loss = F.sum(F.log(F.softmax(t - x))) / len(x.data)
+        tl.log("loss", loss.data)
+        return loss

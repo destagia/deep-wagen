@@ -4,9 +4,10 @@ data = "get_action:0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 
 player = Player()
 command, value = data.split(":")
+
 floats = map(lambda x: float(x), value.split(","))
 
-for no in range(0, 100):
-    print(str(no) + " : " + str(player.jump(floats)))
+for no in range(0, 50):
+    print(str(no) + " : " + str(player.jump(floats, 0.1, False)))
 
-player.learn_lose()
+player.learn()

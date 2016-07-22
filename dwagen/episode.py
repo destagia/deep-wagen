@@ -14,7 +14,7 @@ class Episode:
         :param is_game_end:   boolean
         """
         self.state_v       = state_v
-        self.action_v        = action_v
+        self.action_v      = action_v
         self.action        = action
         self.reward        = reward
         self.state_v_prime = state_v_prime

@@ -17,18 +17,15 @@ class WagenHandler(SocketServer.StreamRequestHandler, object):
             tl.log("server-message", message)
             command, value = message.split(":")
             if command == 'get_action':
-                game_image = value.split(",")
+                raw_image, reward, is_game_end = value.split(';')
+                game_image = raw_image.split(",")
                 tl.log("server-message", game_image)
                 floats = map(lambda x: float(x), game_image)
-                response = 't' if player.jump(floats) else 'f'
+                response = 't' if player.jump(floats, float(reward), is_game_end == "True") else 'f'
                 tl.log("server", "response: " + response)
                 self.wfile.write(response + "\n")
-            elif command == 'learn_win':
-                player.learn_win()
-                tl.log("server", "learned!")
-                self.wfile.write('0\n')
-            elif command == 'learn_lose':
-                player.learn_lose()
+            elif command == 'learn':
+                player.learn()
                 tl.log("server", "learned!")
                 self.wfile.write('0\n')
 
