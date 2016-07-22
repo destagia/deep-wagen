@@ -41,6 +41,8 @@ class Player:
             targets[i] = self.__network(state_v).data
             Q_sa = self.__network(state_v_prime)
 
+            tl.log("minibatch", "reward: " + str(reward) + ", action: " + str(action))
+
             if is_game_end:
                 targets[i, action] = reward
             else:
