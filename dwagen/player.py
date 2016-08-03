@@ -22,6 +22,14 @@ class Player:
         self.__optimizer.setup(self.__network)
         self.reset()
 
+    def reset(self):
+        self.__episodes = []
+        self.__images = []
+        self.__prev_state_v = None
+        self.__prev_action_v = None
+        self.__prev_is_game_end = None
+        self.__ready_to_store_episode = False
+
     def learn(self):
         minibatch = random.sample(self.__episodes, Player.BATCH)
 
@@ -50,14 +58,6 @@ class Player:
 
         x = self.__network(inputs)
         self.__optimizer.update(LossFunction(), x, targets)
-
-    def reset(self):
-        self.__episodes = []
-        self.__images = []
-        self.__prev_state_v = None
-        self.__prev_action_v = None
-        self.__prev_is_game_end = None
-        self.__ready_to_store_episode = False
 
     def jump(self, image, reward, is_game_end):
         """
