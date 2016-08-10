@@ -21,5 +21,5 @@ class PolicyNetwork(Chain):
         h3 = F.relu(self.conv3(h2))
         h4 = F.relu(self.l1(h3))
         h5 = F.relu(self.l2(h4))
-        tl.log("player", h5.data)
+        tl.log("network", h5.data)
         return F.softmax(h5)

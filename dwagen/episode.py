@@ -19,3 +19,8 @@ class Episode:
         self.reward        = reward
         self.state_v_prime = state_v_prime
         self.is_game_end   = is_game_end
+
+    def __str__(self):
+        return "episode(a={}, r={})".format(self.action, self.reward)
+
+    __repr__ = __str__

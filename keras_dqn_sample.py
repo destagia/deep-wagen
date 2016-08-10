@@ -51,7 +51,7 @@ def buildmodel():
     model.add(Dense(512, init=lambda shape, name: normal(shape, scale=0.01, name=name)))
     model.add(Activation('relu'))
     model.add(Dense(2,init=lambda shape, name: normal(shape, scale=0.01, name=name)))
-   
+
     adam = Adam(lr=1e-6)
     model.compile(loss='mse',optimizer=adam)
     print("We finish building the model")
@@ -85,7 +85,7 @@ def trainNetwork(model,args):
         model.load_weights("model.h5")
         adam = Adam(lr=1e-6)
         model.compile(loss='mse',optimizer=adam)
-        print ("Weight load successfully")    
+        print ("Weight load successfully")
     else:                       #We go to training mode
         OBSERVE = OBSERVATION
         epsilon = INITIAL_EPSILON
@@ -179,7 +179,7 @@ def trainNetwork(model,args):
 
         print("TIMESTEP", t, "/ STATE", state, \
             "/ EPSILON", epsilon, "/ ACTION", action_index, "/ REWARD", r_t, \
-            "/ Q_MAX " , np.max(Q_sa), "/ Loss ", loss)
+            "/ Q " , Q_sa, "/ Loss ", loss)
 
     print("Episode finished!")
     print("************************")
